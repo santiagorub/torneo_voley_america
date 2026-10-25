@@ -13,7 +13,6 @@
             --text-light: #f4f4f7;
             --text-muted: #a0a0b0;
             --accent-green: #25d366;
-            --accent-green-dark: #1da851;
         }
 
         * {
@@ -56,6 +55,7 @@
         .actions-group {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .btn-action {
@@ -68,12 +68,17 @@
             font-size: 0.9rem;
             cursor: pointer;
             flex: 1;
+            min-width: 130px;
             transition: transform 0.1s;
         }
 
         .btn-action.secondary {
             background-color: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-action.success {
+            background-color: var(--accent-green);
         }
 
         .btn-action:active {
@@ -183,6 +188,24 @@
             font-weight: 600;
         }
 
+        .saved-list-container {
+            background-color: var(--card-bg);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .saved-item {
+            background-color: rgba(255,255,255,0.05);
+            padding: 12px 16px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .campeon-banner {
             background: linear-gradient(135deg, #25d366, #117a37);
             border-radius: 16px;
@@ -206,8 +229,8 @@
         </header>
 
         <div class="actions-group">
-            <button class="btn-action" onclick="sortearTorneo()">🔄 Nuevo Sorteo</button>
-            <button class="btn-action secondary" onclick="cargarUltimoTorneo()">📂 Cargar Guardado</button>
+            <button class="btn-action" onclick="sortearNuevoTorneo()">🎲 Sortear Nuevo Torneo</button>
+            <button class="btn-action secondary" onclick="mostrarTorneosGuardados()">📂 Torneos Guardados</button>
         </div>
 
         <div class="equipos-cargados" id="seccionEquipos" style="display: none;">
@@ -215,37 +238,34 @@
             <ul id="listaEquipos"></ul>
         </div>
 
+        <!-- Panel de control dinámico (Guardar y Listados) -->
+        <div id="panelControl"></div>
+
         <div id="contenedorFases"></div>
     </div>
 
     <script>
-        // Nueva URL actualizada de Google Apps Script
         const URL_GOOGLE_STORAGE = "https://script.google.com/macros/s/AKfycbxl43vb9Wtb6deiHBM0r4r2T8H9iTNiR6G_fdxYEoM7fNVUhq4umFDrVBDNyCLWc6ApPg/exec";
-        const STORAGE_KEY = "voley_torneo_estado_2026";
+        const STORAGE_PREFIX = "voley_torneo_custom_";
 
         let fasesTorneo = [];
         let equiposGlobal = [];
+        let torneoActualActivo = false;
 
+        // Al abrir la página, el fixture arranca limpio (sin mostrar llaves automáticas)
         window.onload = function() {
-            const guardado = localStorage.getItem(STORAGE_KEY);
-            if (guardado) {
-                const datos = JSON.parse(guardado);
-                fasesTorneo = datos.fases;
-                equiposGlobal = datos.equipos;
-                mostrarEquiposUI(equiposGlobal);
-                renderizarTorneo();
-            } else {
-                cargarEquiposDesdeDrive(false);
-            }
+            document.getElementById('contenedorFases').innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                    <p style="font-size: 1.1rem; margin-bottom: 8px;">👋 ¡Bienvenido al panel del torneo!</p>
+                    <p style="font-size: 0.9rem;">Hacé clic en <strong>"Sortear Nuevo Torneo"</strong> para comenzar o cargá uno guardado.</p>
+                </div>
+            `;
         };
 
-        async function cargarEquiposDesdeDrive(esNuevoSorteo) {
+        async function sortearNuevoTorneo() {
             const contenedor = document.getElementById('contenedorFases');
-            if (esNuevoSorteo) {
-                contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Sorteando nuevos cruces...</p>';
-            } else {
-                contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Cargando equipos desde Drive...</p>';
-            }
+            contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Descargando equipos de Drive y sorteando...</p>';
+            document.getElementById('panelControl').innerHTML = '';
 
             try {
                 const response = await fetch(URL_GOOGLE_STORAGE);
@@ -259,9 +279,30 @@
                 equiposGlobal = data.map(item => item.nombreEquipo);
                 mostrarEquiposUI(equiposGlobal);
 
-                if (esNuevoSorteo || !localStorage.getItem(STORAGE_KEY)) {
-                    iniciarNuevoSorteo(equiposGlobal);
+                let lista = [...equiposGlobal];
+                lista.sort(() => Math.random() - 0.5);
+
+                fasesTorneo = [{
+                    nombreRonda: lista.length > 4 ? "Cuartos de Final" : (lista.length > 2 ? "Semifinales" : "Final"),
+                    partidos: []
+                }];
+
+                if (lista.length % 2 !== 0) {
+                    lista.push("PASA DIRECTO (Libre)");
                 }
+
+                for (let i = 0; i < lista.length; i += 2) {
+                    fasesTorneo[0].partidos.push({
+                        id: 'r0_p' + (fasesTorneo[0].partidos.length + 1),
+                        eq1: lista[i],
+                        eq2: lista[i+1],
+                        ganador: null
+                    });
+                }
+
+                torneoActualActivo = true;
+                mostrarBotonGuardar();
+                renderizarTorneo();
 
             } catch (error) {
                 console.error(error);
@@ -281,62 +322,99 @@
             document.getElementById('seccionEquipos').style.display = 'block';
         }
 
-        function sortearTorneo() {
-            if (confirm("¿Estás seguro de hacer un nuevo sorteo? Se borrarán los resultados actuales.")) {
-                if (equiposGlobal.length > 0) {
-                    iniciarNuevoSorteo(equiposGlobal);
-                } else {
-                    cargarEquiposDesdeDrive(true);
-                }
-            }
+        function mostrarBotonGuardar() {
+            const panel = document.getElementById('panelControl');
+            panel.innerHTML = `
+                <button class="btn-action success" onclick="pedirNombreYGuardar()">💾 Guardar este Torneo</button>
+            `;
         }
 
-        function cargarUltimoTorneo() {
-            const guardado = localStorage.getItem(STORAGE_KEY);
-            if (guardado) {
-                const datos = JSON.parse(guardado);
-                fasesTorneo = datos.fases;
-                equiposGlobal = datos.equipos;
-                mostrarEquiposUI(equiposGlobal);
-                renderizarTorneo();
-                alert("¡Torneo restaurado con éxito!");
-            } else {
-                alert("No hay ningún torneo guardado previamente.");
-            }
-        }
+        function pedirNombreYGuardar() {
+            const nombreTorneo = prompt("Poné un nombre para identificar este torneo (ej: Fecha 1 - Zona Norte):");
+            if (!nombreTorneo || nombreTorneo.trim() === "") return;
 
-        function iniciarNuevoSorteo(equipos) {
-            let lista = [...equipos];
-            lista.sort(() => Math.random() - 0.5);
+            const fechaCreacion = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-            fasesTorneo = [{
-                nombreRonda: lista.length > 4 ? "Cuartos de Final" : (lista.length > 2 ? "Semifinales" : "Final"),
-                partidos: []
-            }];
-
-            if (lista.length % 2 !== 0) {
-                lista.push("PASA DIRECTO (Libre)");
-            }
-
-            for (let i = 0; i < lista.length; i += 2) {
-                fasesTorneo[0].partidos.push({
-                    id: 'r0_p' + (fasesTorneo[0].partidos.length + 1),
-                    eq1: lista[i],
-                    eq2: lista[i+1],
-                    ganador: null
-                });
-            }
-
-            guardarEstado();
-            renderizarTorneo();
-        }
-
-        function guardarEstado() {
-            const datos = {
+            const datosTorneo = {
+                nombre: nombreTorneo.trim(),
+                fecha: fechaCreacion,
                 equipos: equiposGlobal,
                 fases: fasesTorneo
             };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
+
+            const key = STORAGE_PREFIX + Date.now();
+            localStorage.setItem(key, JSON.stringify(datosTorneo));
+            alert(`¡Torneo "${nombreTorneo}" guardado con éxito!`);
+        }
+
+        function mostrarTorneosGuardados() {
+            const panel = document.getElementById('panelControl');
+            const contenedor = document.getElementById('contenedorFases');
+            
+            // Buscamos todas las claves guardadas en localStorage
+            let keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                let k = localStorage.key(i);
+                if (k.startsWith(STORAGE_PREFIX)) {
+                    keys.push(k);
+                }
+            }
+
+            if (keys.length === 0) {
+                alert("No hay torneos guardados todavía.");
+                return;
+            }
+
+            document.getElementById('seccionEquipos').style.display = 'none';
+            contenedor.innerHTML = '';
+
+            let html = `
+                <div class="saved-list-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 1.1rem; color: var(--primary);">📂 Torneos Guardados</h3>
+                        <button class="btn-action secondary" style="padding: 6px 12px; font-size: 0.8rem; flex: none;" onclick="volverAlInicio()">🔙 Volver</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
+            `;
+
+            keys.forEach(k => {
+                const itemData = JSON.parse(localStorage.getItem(k));
+                html += `
+                    <div class="saved-item">
+                        <div>
+                            <strong>${itemData.nombre}</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Creado el: ${itemData.fecha}</div>
+                        </div>
+                        <button class="btn-action" style="padding: 8px 14px; font-size: 0.85rem; flex: none;" onclick="cargarTorneoGuardado('${k}')">Cargar</button>
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+            panel.innerHTML = html;
+        }
+
+        function cargarTorneoGuardado(key) {
+            const data = JSON.parse(localStorage.getItem(key));
+            if (data) {
+                fasesTorneo = data.fases;
+                equiposGlobal = data.equipos;
+                mostrarEquiposUI(equiposGlobal);
+                document.getElementById('panelControl').innerHTML = '';
+                torneoActualActivo = true;
+                renderizarTorneo();
+            }
+        }
+
+        function volverAlInicio() {
+            document.getElementById('panelControl').innerHTML = '';
+            document.getElementById('seccionEquipos').style.display = 'none';
+            document.getElementById('contenedorFases').innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                    <p style="font-size: 1.1rem; margin-bottom: 8px;">👋 ¡Bienvenido al panel del torneo!</p>
+                    <p style="font-size: 0.9rem;">Hacé clic en <strong>"Sortear Nuevo Torneo"</strong> para comenzar o cargá uno guardado.</p>
+                </div>
+            `;
         }
 
         function seleccionarGanador(rondaIndex, partidoIndex, equipoGanador) {
@@ -344,7 +422,8 @@
             partido.ganador = equipoGanador;
 
             verificarAvanzarRonda(rondaIndex);
-            guardarEstado();
+            
+            // Si hay un torneo activo, actualizamos automáticamente su estado guardado si ya tenía nombre (opcional)
             renderizarTorneo();
         }
 
