@@ -13,6 +13,7 @@
             --text-light: #f4f4f7;
             --text-muted: #a0a0b0;
             --accent-green: #25d366;
+            --accent-green-dark: #1da851;
         }
 
         * {
@@ -69,10 +70,19 @@
             transform: scale(0.98);
         }
 
-        .bracket-container {
+        .round-section {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
+        }
+
+        .round-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            border-bottom: 2px solid rgba(255,87,34,0.3);
+            padding-bottom: 6px;
+            margin-top: 10px;
         }
 
         .match-card {
@@ -85,12 +95,13 @@
             gap: 10px;
         }
 
-        .match-title {
-            font-size: 0.85rem;
-            color: var(--primary);
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-muted);
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .team-row {
@@ -100,23 +111,44 @@
             background-color: rgba(255,255,255,0.03);
             padding: 10px 14px;
             border-radius: 8px;
-            font-weight: 600;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .team-row.winner {
+            background-color: rgba(37, 211, 102, 0.15);
+            border-color: var(--accent-green);
+        }
+
+        .team-row.loser {
+            opacity: 0.4;
         }
 
         .team-name {
-            font-size: 0.95rem;
+            font-size: 0.95Font;
+            font-weight: 600;
         }
 
-        .vs-badge {
-            text-align: center;
+        .btn-win {
+            background-color: rgba(255,255,255,0.1);
+            color: var(--text-light);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
             font-size: 0.75rem;
-            color: var(--text-muted);
             font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
 
-        .bye-text {
-            color: var(--text-muted);
-            font-style: italic;
+        .btn-win:hover {
+            background-color: var(--accent-green);
+            color: white;
+        }
+
+        .team-row.winner .btn-win {
+            background-color: var(--accent-green);
+            color: white;
         }
 
         .equipos-cargados {
@@ -140,32 +172,47 @@
             border-radius: 20px;
             font-weight: 600;
         }
+
+        .campeon-banner {
+            background: linear-gradient(135deg, #25d366, #117a37);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
         <header>
-            <h1>Fixture del Torneo</h1>
-            <p style="font-size: 0.85rem; margin-top: 4px;">Eliminación Directa</p>
+            <h1>🏆 Fixture del Torneo</h1>
+            <p style="font-size: 0.85rem; margin-top: 4px;">Eliminación Directa en Vivo</p>
         </header>
 
-        <button class="btn-action" onclick="cargarYGenerarFixture()">🔄 Sortea y Generar Fixture</button>
+        <button class="btn-action" onclick="cargarYGenerarFixture()">🔄 Sortear y Reiniciar Torneo</button>
 
         <div class="equipos-cargados" id="seccionEquipos" style="display: none;">
             <strong>Equipos participantes (<span id="totalEquipos">0</span>):</strong>
             <ul id="listaEquipos"></ul>
         </div>
 
-        <div class="bracket-container" id="contenedorFixture"></div>
+        <div id="contenedorFases"></div>
     </div>
 
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxl43vb9Wtb6deiHBM0r4r2T8H9iTNiR6G_fdxYEoM7fNVUhq4umFDrVBDNyCLWc6ApPg/exec";
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzaJ3rwS7qgcP1zcsG9l_KoXJ8B4r03w3Q5Y-stNHsYsDxuEg13ivTPgKVxfXj_y5CcBg/exec";
+
+        let fasesTorneo = [];
 
         async function cargarYGenerarFixture() {
-            const contenedor = document.getElementById('contenedorFixture');
-            contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Cargando equipos e inscripciones...</p>';
+            const contenedor = document.getElementById('contenedorFases');
+            contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Cargando equipos desde Drive...</p>';
 
             try {
                 const response = await fetch(URL_GOOGLE_SCRIPT);
@@ -176,10 +223,8 @@
                     return;
                 }
 
-                // Extraer nombres de equipos
                 let nombresEquipos = data.map(item => item.nombreEquipo);
 
-                // Mostrar lista de equipos cargados
                 document.getElementById('totalEquipos').innerText = nombresEquipos.length;
                 const ul = document.getElementById('listaEquipos');
                 ul.innerHTML = '';
@@ -190,10 +235,29 @@
                 });
                 document.getElementById('seccionEquipos').style.display = 'block';
 
-                // Mezclar de forma aleatoria los equipos (Sorteo)
+                // Sorteo aleatorio
                 nombresEquipos.sort(() => Math.random() - 0.5);
 
-                generarLlave(nombresEquipos);
+                // Inicializar primera fase
+                fasesTorneo = [{
+                    nombreRonda: nombresEquipos.length > 4 ? "Cuartos de Final" : (nombresEquipos.length > 2 ? "Semifinales" : "Final"),
+                    partidos: []
+                }];
+
+                if (nombresEquipos.length % 2 !== 0) {
+                    nombresEquipos.push("PASA DIRECTO (Libre)");
+                }
+
+                for (let i = 0; i < nombresEquipos.length; i += 2) {
+                    fasesTorneo[0].partidos.push({
+                        id: 'r0_p' + (fasesTorneo[0].partidos.length + 1),
+                        eq1: nombresEquipos[i],
+                        eq2: nombresEquipos[i+1],
+                        ganador: null
+                    });
+                }
+
+                renderizarTorneo();
 
             } catch (error) {
                 console.error(error);
@@ -201,36 +265,105 @@
             }
         }
 
-        function generarLlave(equipos) {
-            const contenedor = document.getElementById('contenedorFixture');
+        function seleccionarGanador(rondaIndex, partidoIndex, equipoGanador) {
+            const partido = fasesTorneo[rondaIndex].partidos[partidoIndex];
+            
+            // Si ya tenía un ganador, permitimos cambiarlo o lo establecemos
+            partido.ganador = equipoGanador;
+
+            // Verificamos si todos los partidos de la ronda actual tienen ganador
+            verificarAvanzarRonda(rondaIndex);
+            renderizarTorneo();
+        }
+
+        function verificarAvanzarRonda(rondaIndex) {
+            const rondaActual = fasesTorneo[rondaIndex];
+            const todosDefinidos = rondaActual.partidos.every(p => p.ganador !== null);
+
+            if (todosDefinidos) {
+                // Recolectar ganadores
+                const ganadores = rondaActual.partidos.map(p => p.ganador);
+
+                // Si queda más de un ganador, creamos la siguiente ronda
+                if (ganadores.length > 1) {
+                    // Si ya existe la siguiente ronda, la pisamos/actualizamos
+                    const siguienteRondaNombre = ganadores.length > 2 ? "Semifinales" : "Gran Final";
+                    
+                    const nuevosPartidos = [];
+                    for (let i = 0; i < ganadores.length; i += 2) {
+                        nuevosPartidos.push({
+                            id: `r${rondaIndex+1}_p` + (nuevosPartidos.length + 1),
+                            eq1: ganadores[i],
+                            eq2: ganadores[i+1] || "LIBRE",
+                            ganador: null
+                        });
+                    }
+
+                    // Cortamos fases posteriores si existían y agregamos la nueva
+                    fasesTorneo = fasesTorneo.slice(0, rondaIndex + 1);
+                    fasesTorneo.push({
+                        nombreRonda: siguienteRondaNombre,
+                        partidos: nuevosPartidos
+                    });
+                }
+            }
+        }
+
+        function renderizarTorneo() {
+            const contenedor = document.getElementById('contenedorFases');
             contenedor.innerHTML = '';
 
-            // Si la cantidad de equipos es impar, agregamos un "Libre / Pasa directo"
-            if (equipos.length % 2 !== 0) {
-                equipos.push("PASA DIRECTO (Libre)");
-            }
+            fasesTorneo.forEach((ronda, rIndex) => {
+                const rondaDiv = document.createElement('div');
+                rondaDiv.className = 'round-section';
 
-            let partidoNum = 1;
-            for (let i = 0; i < equipos.length; i += 2) {
-                const eq1 = equipos[i];
-                const eq2 = equipos[i + 1];
+                const titulo = document.createElement('div');
+                titulo.className = 'round-title';
+                titulo.innerText = ronda.nombreRonda;
+                rondaDiv.appendChild(titulo);
 
-                const card = document.createElement('div');
-                card.className = 'match-card';
+                ronda.partidos.forEach((partido, pIndex) => {
+                    const card = document.createElement('div');
+                    card.className = 'match-card';
 
-                card.innerHTML = `
-                    <div class="match-title">Partido ${partidoNum} - Cruce Inicial</div>
-                    <div class="team-row">
-                        <span class="team-name">${eq1}</span>
-                    </div>
-                    <div class="vs-badge">VS</div>
-                    <div class="team-row">
-                        <span class="team-name ${eq2.includes('DIRECTO') ? 'bye-text' : ''}">${eq2}</span>
-                    </div>
+                    const isEq1Winner = partido.ganador === partido.eq1;
+                    const isEq2Winner = partido.ganador === partido.eq2;
+
+                    card.innerHTML = `
+                        <div class="match-header">
+                            <span>Partido ${pIndex + 1}</span>
+                            <span>${partido.ganador ? '✅ Definido' : '⏳ En juego'}</span>
+                        </div>
+                        <div class="team-row ${isEq1Winner ? 'winner' : (partido.ganador ? 'loser' : '')}">
+                            <span class="team-name">🏐 ${partido.eq1}</span>
+                            <button class="btn-win" onclick="seleccionarGanador(${rIndex}, ${pIndex}, '${partido.eq1}')">
+                                ${isEq1Winner ? 'Ganador' : 'Marcar Ganador'}
+                            </button>
+                        </div>
+                        <div class="team-row ${isEq2Winner ? 'winner' : (partido.ganador ? 'loser' : '')}">
+                            <span class="team-name">🏐 ${partido.eq2}</span>
+                            <button class="btn-win" onclick="seleccionarGanador(${rIndex}, ${pIndex}, '${partido.eq2}')">
+                                ${isEq2Winner ? 'Ganador' : 'Marcar Ganador'}
+                            </button>
+                        </div>
+                    `;
+                    rondaDiv.appendChild(card);
+                });
+
+                contenedor.appendChild(rondaDiv);
+            });
+
+            // Si llegamos a la final y hay un ganador definitivo
+            const ultimaRonda = fasesTorneo[fasesTorneo.length - 1];
+            if (ultimaRonda.nombreRonda === "Gran Final" && ultimaRonda.partidos.length === 1 && ultimaRonda.partidos[0].ganador !== null) {
+                const campeon = ultimaRonda.partidos[0].ganador;
+                const banner = document.createElement('div');
+                banner.className = 'campeon-banner';
+                banner.innerHTML = `
+                    <h2 style="font-size: 1.5rem; margin-bottom: 6px;">🎉 ¡CAMPEÓN DEL TORNEO! 🎉</h2>
+                    <p style="font-size: 1.2rem; font-weight: 800;">${campeon}</p>
                 `;
-
-                contenedor.appendChild(card);
-                partidoNum++;
+                contenedor.appendChild(banner);
             }
         }
     </script>
