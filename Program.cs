@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Habilitar CORS por si tu frontend está en otro dominio o puerto durante las pruebas
+// Habilitar CORS
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -19,17 +19,17 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors();
-app.UseStaticFiles(); // Sirve archivos estáticos (tu index.html si lo ponés en la carpeta wwwroot)
+app.UseDefaultFiles(); // Carga index.html por defecto al entrar a la raíz
+app.UseStaticFiles();  // Sirve los archivos de la carpeta wwwroot
 
-// Ruta del archivo JSON único donde se guardarán todas las inscripciones
+// Ruta del archivo JSON único de base de datos
 string jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "equipos.json");
 
-// Endpoint para recibir la inscripción desde la página web
+// Endpoint API para recibir inscripciones
 app.MapPost("/api/inscribir", async (HttpContext context) =>
 {
     try
     {
-        // Leer los datos que manda el formulario de la página
         var nuevoEquipo = await JsonSerializer.DeserializeAsync<EquipoModel>(context.Request.Body);
 
         if (nuevoEquipo == null || string.IsNullOrWhiteSpace(nuevoEquipo.NombreEquipo))
@@ -37,8 +37,9 @@ app.MapPost("/api/inscribir", async (HttpContext context) =>
             return Results.BadRequest(new { success = false, message = "Datos de equipo inválidos." });
         }
 
-        // Cargar la lista existente de equipos desde el JSON (si ya existe)
         List<EquipoModel> equiposList = new();
+
+        // Si ya existe el JSON, lo leemos para agregar el nuevo equipo
         if (File.Exists(jsonFilePath))
         {
             string existingJson = await File.ReadAllTextAsync(jsonFilePath);
@@ -48,20 +49,20 @@ app.MapPost("/api/inscribir", async (HttpContext context) =>
             }
         }
 
-        // Agregar fecha y hora de registro
+        // Asignamos la fecha de inscripción
         nuevoEquipo.FechaInscripcion = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-        // Agregar el nuevo equipo a la lista
+        // Agregamos el nuevo equipo
         equiposList.Add(nuevoEquipo);
 
-        // Guardar la lista actualizada de vuelta en el archivo JSON con formato legible
+        // Guardamos todo de nuevo en el archivo JSON
         var options = new JsonSerializerOptions { WriteIndented = true };
         string updatedJson = JsonSerializer.Serialize(equiposList, options);
         await File.WriteAllTextAsync(jsonFilePath, updatedJson);
 
-        return Results.Ok(new { success = true, message = "¡Inscripción guardada con éxito en el JSON!" });
+        return Results.Ok(new { success = true, message = "¡Inscripción guardada con éxito!" });
     }
-    >catch (Exception ex)
+    catch (Exception ex)
     {
         return Results.Problem(detail: ex.Message, statusCode: 500);
     }
@@ -69,7 +70,7 @@ app.MapPost("/api/inscribir", async (HttpContext context) =>
 
 app.Run();
 
-// Modelo de datos que recibe el backend
+// Modelo del equipo
 public class EquipoModel
 {
     public string NombreEquipo { get; set; } = string.Empty;

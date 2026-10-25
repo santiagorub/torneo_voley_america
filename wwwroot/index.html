@@ -2,404 +2,465 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Torneo de Vóley Mixto</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0f7ff',
-                            100: '#e0effe',
-                            500: '#0284c7',
-                            600: '#0369a1',
-                            700: '#095186',
-                            accent: '#f97316'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #ff5722;
+            --primary-dark: #e64a19;
+            --bg-dark: #121214;
+            --card-bg: #1e1e24;
+            --input-bg: #2a2a32;
+            --text-light: #f4f4f7;
+            --text-muted: #a0a0b0;
+            --accent-green: #25d366;
+            --accent-green-dark: #1da851;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            -webkit-tap-highlight-color: transparent;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 0;
         }
-        .glow-effect {
-            box-shadow: 0 0 25px -5px rgba(249, 115, 22, 0.3);
+
+        .mobile-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--bg-dark);
+            padding: 20px;
+            padding-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+
+        header {
+            text-align: center;
+            padding: 24px 16px;
+            background: linear-gradient(135deg, #ff5722, #ff8a65);
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(255, 87, 34, 0.3);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 4px;
+            opacity: 0.9;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .info-icon {
+            font-size: 1.2rem;
+            min-width: 24px;
+        }
+
+        .transfer-box {
+            background: linear-gradient(145deg, #252530, #1a1a20);
+            border: 2px dashed var(--primary);
+            text-align: center;
+            border-radius: 16px;
+            padding: 18px;
+        }
+
+        .alias-tag {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 10px 0;
+            letter-spacing: 1px;
+            word-break: break-all;
+        }
+
+        .owner-name {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .btn-copy {
+            background-color: rgba(255, 87, 34, 0.15);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            background-color: var(--input-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        .integrantes-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .btn-submit {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
+            transition: transform 0.1s, background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            border: 2px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-icon {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .modal-text {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .whatsapp-notice {
+            background-color: rgba(37, 211, 102, 0.1);
+            border: 1px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+
+        .whatsapp-notice p {
+            font-size: 0.85rem;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .btn-whatsapp {
+            background-color: var(--accent-green);
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .btn-close {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.2);
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
         }
     </style>
 </head>
-<body class="min-h-screen flex justify-center items-start sm:py-6">
+<body>
 
-    <!-- Container Móvil Principal (Ancho optimizado para pantallas de smartphones) -->
-    <div class="w-full max-w-md min-h-screen sm:min-h-0 sm:rounded-3xl bg-slate-900 shadow-2xl overflow-hidden flex flex-col justify-between border-slate-800 sm:border">
+    <div class="mobile-container">
         
-        <!-- Header Banner con efecto de Vóley -->
-        <header class="relative bg-gradient-to-br from-blue-700 via-indigo-800 to-slate-900 pt-8 pb-10 px-6 text-center overflow-hidden">
-            <!-- Icono Vóley marca de agua de fondo -->
-            <i class="fa-solid font-black fa-volleyball absolute -right-6 -bottom-6 text-9xl text-white/5 rotate-12"></i>
-            <i class="fa-solid fa-volleyball absolute -left-10 -top-10 text-8xl text-white/5 -rotate-45"></i>
-            
-            <div class="inline-flex items-center gap-2 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
-                <i class="fa-solid fa-fire text-orange-400"></i> ¡Inscripciones Abiertas!
-            </div>
-            
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-                Torneo de Vóley Mixto
-            </h1>
-            <p class="text-slate-300 text-sm mt-2 font-medium">Asegurá el lugar de tu equipo completando el formulario</p>
+        <header>
+            <h1>Torneo de vóley mixto</h1>
+            <p>¡Asegurá el lugar de tu equipo!</p>
         </header>
 
-        <!-- Contenido Principal -->
-        <main class="p-5 space-y-6 -mt-4 relative z-10">
+        <section class="card">
+            <h2 class="card-title">📌 Información del torneo</h2>
+            <ul class="info-list">
+                <li class="info-item">
+                    <span class="info-icon">🏐</span>
+                    <div><strong>Categoría:</strong> Torneo Mixto</div>
+                </li>
+                <li class="info-item">
+                    <span class="info-icon">👥</span>
+                    <div><strong>Equipos:</strong> De 6 a 8 integrantes (Mínimo 2 mujeres en cancha si o si).</div>
+                </li>
+                <li class="info-item">
+                    <span class="info-icon">💰</span>
+                    <div><strong>Inscripción:</strong> $28.000 por equipo</div>
+                </li>
+                <li class="info-item">
+                    <span class="info-icon">📅</span>
+                    <div><strong>Fecha y Hora:</strong> 26 de noviembre de 2026 - 20:00 hs</div>
+                </li>
+                <li class="info-item">
+                    <span class="info-icon">📍</span>
+                    <div><strong>Lugar:</strong> C. Uruguay 140</div>
+                </li>
+            </ul>
+        </section>
 
-            <!-- Ficha / Detalle del Torneo -->
-            <section class="glass-card rounded-2xl p-5 shadow-lg space-y-4">
-                <h2 class="text-lg font-bold text-white flex items-center gap-2 border-b border-slate-700/80 pb-2">
-                    <i class="fa-solid fa-circle-info text-brand-accent"></i> Información del Torneo
-                </h2>
+        <section class="card transfer-box">
+            <h2 class="card-title" style="justify-content: center;">💳 Datos para transferencia</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Realizá el pago a la siguiente cuenta:</p>
+            <div>
+                <span class="alias-tag" id="aliasText">VOLEY.MIXTO.2026</span>
+            </div>
+            <p class="owner-name">Titular: Juan Pérez</p>
+            <button class="btn-copy" onclick="copiarAlias()">Copiar Alias</button>
+        </section>
 
-                <div class="grid grid-cols-2 gap-3 text-sm">
-                    <!-- Fecha -->
-                    <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col">
-                        <span class="text-slate-400 text-xs font-semibold flex items-center gap-1">
-                            <i class="fa-regular fa-calendar text-brand-500"></i> Fecha
-                        </span>
-                        <span class="text-white font-bold mt-1">26 de Nov, 2026</span>
-                    </div>
+        <form class="card" id="formInscripcion" onsubmit="registrarEquipo(event)">
+            <h2 class="card-title">📝 Registro del equipo</h2>
+            
+            <div class="form-group">
+                <label for="nombreEquipo">Nombre del equipo</label>
+                <input type="text" id="nombreEquipo" placeholder="Ej: Los Imparables" required>
+            </div>
 
-                    <!-- Horario -->
-                    <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col">
-                        <span class="text-slate-400 text-xs font-semibold flex items-center gap-1">
-                            <i class="fa-regular fa-clock text-brand-500"></i> Horario
-                        </span>
-                        <span class="text-white font-bold mt-1">20:00 hs</span>
-                    </div>
+            <div class="form-group">
+                <label for="cantidadIntegrantes">Cantidad de integrantes</label>
+                <select id="cantidadIntegrantes" onchange="generarCamposIntegrantes()" required>
+                    <option value="6">6 Jugadores</option>
+                    <option value="7">7 Jugadores</option>
+                    <option value="8">8 Jugadores</option>
+                </select>
+            </div>
 
-                    <!-- Ubicación -->
-                    <div class="col-span-2 bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col">
-                        <span class="text-slate-400 text-xs font-semibold flex items-center gap-1">
-                            <i class="fa-solid fa-location-dot text-rose-500"></i> Dirección / Lugar
-                        </span>
-                        <span class="text-white font-bold mt-1">C. Uruguay 140</span>
-                    </div>
+            <div class="form-group">
+                <label>Nombres de los integrantes</label>
+                <div class="integrantes-container" id="contenedorIntegrantes">
                 </div>
+            </div>
 
-                <!-- Reglas y Precio -->
-                <div class="space-y-2 pt-1 text-xs sm:text-sm">
-                    <div class="flex items-center gap-2 text-slate-200 bg-slate-800/40 p-2.5 rounded-lg">
-                        <i class="fa-solid fa-users text-orange-400"></i>
-                        <span>Equipos de <strong>6 a 8 integrantes</strong></span>
-                    </div>
-                    <div class="flex items-center gap-2 text-slate-200 bg-slate-800/40 p-2.5 rounded-lg">
-                        <i class="fa-solid fa-venus-mars text-purple-400"></i>
-                        <span>Regla: <strong>Mínimo 2 mujeres en cancha</strong></span>
-                    </div>
-                    <div class="flex items-center justify-between text-slate-200 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/20 p-3 rounded-xl">
-                        <span class="font-semibold text-slate-300">Valor Inscripción:</span>
-                        <span class="text-xl font-extrabold text-orange-400">$28.000 <span class="text-xs font-normal text-slate-400">/ equipo</span></span>
-                    </div>
-                </div>
-            </section>
+            <button type="submit" class="btn-submit">Terminar inscripción</button>
+        </form>
 
-            <!-- Datos de Pago / Transferencia -->
-            <section class="glass-card rounded-2xl p-5 border-l-4 border-l-emerald-500 shadow-lg space-y-3">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-md font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-building-columns text-emerald-400"></i> Datos para Transferencia
-                    </h2>
-                </div>
-                <p class="text-xs text-slate-300">Aboná la inscripción y completá el formulario a continuación:</p>
-
-                <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700/80 space-y-2">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400">Titular:</span>
-                        <span class="text-white font-semibold">Lucas Voley Torneos</span>
-                    </div>
-                    <div class="flex justify-between items-center text-xs border-t border-slate-800 pt-2">
-                        <span class="text-slate-400">Alias:</span>
-                        <div class="flex items-center gap-2">
-                            <span id="aliasText" class="text-emerald-400 font-mono font-bold text-sm select-all">VOLEY.MIXTO.2026</span>
-                            <button onclick="copiarAlias()" type="button" title="Copiar Alias" class="bg-slate-800 hover:bg-slate-700 text-slate-200 p-1.5 rounded-lg border border-slate-600 transition active:scale-95 text-xs">
-                                <i id="copyIcon" class="fa-regular fa-copy"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Formulario de Inscripción -->
-            <form id="formInscripcion" onsubmit="procesarInscripcion(event)" class="glass-card rounded-2xl p-5 shadow-lg space-y-4">
-                <h2 class="text-lg font-bold text-white flex items-center gap-2 border-b border-slate-700/80 pb-2">
-                    <i class="fa-solid fa-pen-to-square text-brand-500"></i> Formulario de Equipo
-                </h2>
-
-                <!-- Nombre del Equipo -->
-                <div class="space-y-1.5">
-                    <label for="nombreEquipo" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
-                        Nombre del Equipo <span class="text-orange-500">*</span>
-                    </label>
-                    <input type="text" id="nombreEquipo" required placeholder="Ej: Los Imparables"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition">
-                </div>
-
-                <!-- Cantidad de Integrantes -->
-                <div class="space-y-1.5">
-                    <label for="cantIntegrantes" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
-                        Cantidad de Integrantes (6 a 8) <span class="text-orange-500">*</span>
-                    </label>
-                    <select id="cantIntegrantes" onchange="generarCamposIntegrantes()" required
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition">
-                        <option value="6" selected>6 Integrantes</option>
-                        <option value="7">7 Integrantes</option>
-                        <option value="8">8 Integrantes</option>
-                    </select>
-                </div>
-
-                <!-- Lista Dinámica de Jugadores -->
-                <div class="space-y-3 pt-2">
-                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
-                        Nombre de los Jugadores <span class="text-orange-500">*</span>
-                    </label>
-                    <div id="contenedorJugadores" class="space-y-2.5">
-                        <!-- Generado por JS -->
-                    </div>
-                </div>
-
-                <!-- Botón Enviar -->
-                <button type="submit" id="btnSubmit"
-                    class="w-full mt-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold py-4 px-6 rounded-xl shadow-lg glow-effect transition duration-200 transform active:scale-95 flex items-center justify-center gap-2 text-base">
-                    <i class="fa-solid fa-paper-plane"></i>
-                    <span>Terminar inscripción</span>
-                </button>
-            </form>
-
-        </main>
-
-        <!-- Footer -->
-        <footer class="p-6 text-center text-xs text-slate-500 border-t border-slate-800/80 mt-6">
-            <p>© 2026 Torneo de Vóley Mixto • C. Uruguay 140</p>
-        </footer>
     </div>
 
-    <!-- Modal / Cartel de Éxito -->
-    <div id="modalExito" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-700 text-center rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl transform transition-all scale-100">
-            <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-3xl">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
+    <div class="modal-overlay" id="modalExito">
+        <div class="modal-content">
+            <div class="modal-icon">🎉</div>
+            <h3 class="modal-title">¡Inscripción enviada!</h3>
             
-            <h3 class="text-2xl font-black text-white">¡Pre-inscripción Realizada!</h3>
-            
-            <p class="text-sm text-slate-300 leading-relaxed">
-                El equipo <strong id="modalNombreEquipo" class="text-orange-400"></strong> fue registrado en el sistema.
-            </p>
-            
-            <!-- Aviso obligatorio sobre el comprobante -->
-            <div class="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl text-left space-y-2">
-                <div class="flex items-center gap-2 text-amber-400 font-bold text-xs">
-                    <i class="fa-solid fa-triangle-exclamation text-sm"></i>
-                    <span>PASO FINAL OBLIGATORIO</span>
-                </div>
-                <p class="text-xs text-slate-200 leading-snug">
-                    Para que tu inscripción quede <strong class="text-white underline">confirmada definitivamente</strong>, debes <strong>enviar el comprobante de pago al contacto</strong> del torneo.
-                </p>
+            <div class="whatsapp-notice">
+                <p>⚠️ PASO FINAL OBLIGATORIO:</p>
+                <p style="font-weight: 400; margin-top: 4px;">Debés enviar el comprobante de pago al contacto para que se confirme la inscripción de tu equipo.</p>
             </div>
 
-            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-400 text-left space-y-1">
-                <p><i class="fa-solid fa-download text-brand-500 mr-1"></i> Se descargó el archivo <span class="text-slate-200 font-mono">.json</span> con los datos de tu equipo.</p>
-            </div>
-
-            <!-- Botón para enviar comprobante por WhatsApp -->
-            <a id="btnWhatsapp" href="#" target="_blank"
-                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 px-4 rounded-xl shadow-lg transition active:scale-95 text-sm flex items-center justify-center gap-2">
-                <i class="fa-brands fa-whatsapp text-lg"></i>
-                <span>Enviar comprobante de pago</span>
+            <a id="btnWspComprobante" href="#" target="_blank" class="btn-whatsapp">
+                📲 Enviar comprobante por WhatsApp
             </a>
 
-            <button onclick="cerrarModal()" type="button" 
-                class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 px-4 rounded-xl border border-slate-700 transition active:scale-95 text-xs">
-                Cerrar
-            </button>
+            <button class="btn-close" onclick="cerrarModal()">Entendido / Cerrar</button>
         </div>
     </div>
 
-    <!-- Toast de Notificación -->
-    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-2.5 rounded-full shadow-xl border border-slate-700 text-xs flex items-center gap-2 opacity-0 pointer-events-none transition-opacity duration-300 z-50">
-        <i id="toastIcon" class="fa-solid fa-check text-emerald-400"></i>
-        <span id="toastMessage">Mensaje</span>
-    </div>
-
-    <!-- Lógica de la Aplicación -->
     <script>
-        // Generar campos para integrantes dinámicamente según la cantidad elegida
+        const NUMERO_WHATSAPP = "5491112345678"; // Reemplazá por tu número con código de país
+
         function generarCamposIntegrantes() {
-            const cantidad = parseInt(document.getElementById('cantIntegrantes').value);
-            const contenedor = document.getElementById('contenedorJugadores');
-            
-            // Guardar valores ingresados previamente si los hay
-            const valoresPrevios = Array.from(contenedor.querySelectorAll('input')).map(i => i.value);
-            
+            const cantidad = parseInt(document.getElementById('cantidadIntegrantes').value);
+            const contenedor = document.getElementById('contenedorIntegrantes');
             contenedor.innerHTML = '';
 
             for (let i = 1; i <= cantidad; i++) {
-                const div = document.createElement('div');
-                div.className = 'relative flex items-center';
-                
                 const input = document.createElement('input');
                 input.type = 'text';
+                input.placeholder = `Nombre completo jugador ${i}`;
                 input.required = true;
-                input.id = `jugador_${i}`;
-                input.placeholder = `Jugador ${i} (Nombre y Apellido)`;
-                input.value = valoresPrevios[i - 1] || '';
-                input.className = 'w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition';
-
-                const icon = document.createElement('i');
-                icon.className = 'fa-solid fa-user text-slate-500 text-xs absolute left-3';
-
-                div.appendChild(icon);
-                div.appendChild(input);
-                contenedor.appendChild(div);
+                input.className = 'input-integrante';
+                contenedor.appendChild(input);
             }
         }
 
-        // Inicializar campos al cargar la página
-        window.onload = function() {
-            generarCamposIntegrantes();
-        };
-
-        // Función para copiar el Alias al portapapeles
         function copiarAlias() {
             const alias = document.getElementById('aliasText').innerText;
-            
-            // Usar execCommand o Clipboard API de forma segura
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(alias);
-            } else {
-                const textArea = document.createElement('textarea');
-                textArea.value = alias;
-                document.body.appendChild(textArea);
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                } catch (err) {
-                    console.error('Error al copiar', err);
-                }
-                document.body.removeChild(textArea);
-            }
-
-            // Cambiar icono temporalmente y mostrar toast
-            const copyIcon = document.getElementById('copyIcon');
-            copyIcon.className = 'fa-solid fa-check text-emerald-400';
-            mostrarToast('Alias copiado al portapapeles');
-
-            setTimeout(() => {
-                copyIcon.className = 'fa-regular fa-copy';
-            }, 2000);
+            navigator.clipboard.writeText(alias);
+            alert('¡Alias copiado al portapapeles!');
         }
 
-        // Mostrar mensajes flotantes (Toast)
-        function mostrarToast(mensaje) {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            toastMessage.innerText = mensaje;
-            
-            toast.classList.remove('opacity-0', 'pointer-events-none');
-            toast.classList.add('opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('opacity-100');
-                toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 2500);
-        }
-
-        // Procesar formulario y descargar JSON
-        function procesarInscripcion(event) {
+        function registrarEquipo(event) {
             event.preventDefault();
 
-            const nombreEquipo = document.getElementById('nombreEquipo').value.trim();
-            const cantIntegrantes = parseInt(document.getElementById('cantIntegrantes').value);
+            const nombreEquipo = document.getElementById('nombreEquipo').value;
+            const cantidadIntegrantes = parseInt(document.getElementById('cantidadIntegrantes').value);
+            const inputsIntegrantes = document.querySelectorAll('.input-integrante');
             
-            // Recolectar nombres de integrantes
             const integrantes = [];
-            for (let i = 1; i <= cantIntegrantes; i++) {
-                const val = document.getElementById(`jugador_${i}`).value.trim();
-                if (val) integrantes.push(val);
-            }
+            inputsIntegrantes.forEach(input => {
+                if (input.value.trim() !== "") {
+                    integrantes.push(input.value.trim());
+                }
+            });
 
-            if (integrantes.length < cantIntegrantes) {
-                mostrarToast('Por favor completa todos los nombres');
-                return;
-            }
-
-            // Crear objeto de datos con toda la información
-            const datosInscripcion = {
-                id_registro: "TORNEO-" + Date.now(),
-                torneo: "Torneo de Vóley Mixto",
-                fecha_torneo: "26-11-2026 20:00 hs",
-                lugar: "C. Uruguay 140",
-                nombre_equipo: nombreEquipo,
-                cantidad_integrantes: cantIntegrantes,
-                integrantes: integrantes,
-                costo_inscripcion: "$28.000",
-                fecha_inscripcion: new Date().toISOString()
+            const datosEquipo = {
+                nombreEquipo: nombreEquipo,
+                cantidadIntegrantes: cantidadIntegrantes,
+                integrantes: integrantes
             };
 
-            // 1. Guardar localmente en localStorage (para almacenamiento local del navegador)
-            let historialLocal = JSON.parse(localStorage.getItem('inscripciones_voley') || '[]');
-            historialLocal.push(datosInscripcion);
-            localStorage.setItem('inscripciones_voley', JSON.stringify(historialLocal));
-
-            // 2. Generar y descargar el archivo .JSON automáticamente
-            descargarJSON(datosInscripcion, `Inscripcion_${nombreEquipo.replace(/\s+/g, '_')}.json`);
-
-            // 3. Configurar enlace directo a WhatsApp para enviar el comprobante
-            const mensajeWS = encodeURIComponent(`¡Hola! Adjunto el comprobante de pago para confirmar la inscripción del equipo "${nombreEquipo}" al Torneo de Vóley Mixto.`);
-            // Puedes cambiar el número a continuación (formato internacional sin signos, ej: 5491122334455)
-            const numeroTelefono = "5491100000000"; 
-            document.getElementById('btnWhatsapp').href = `https://wa.me/${numeroTelefono}?text=${mensajeWS}`;
-
-            // 4. Mostrar modal de confirmación
-            document.getElementById('modalNombreEquipo').innerText = nombreEquipo;
-            document.getElementById('modalExito').classList.remove('hidden');
+            // Envío por fetch al backend en C#
+            fetch('/api/inscribir', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(datosEquipo)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const mensajeWsp = encodeURIComponent(`¡Hola! Te envío el comprobante de pago para confirmar la inscripción del equipo: *${nombreEquipo}*.`);
+                    document.getElementById('btnWspComprobante').href = `https://wa.me/${NUMERO_WHATSAPP}?text=${mensajeWsp}`;
+                    document.getElementById('modalExito').style.display = 'flex';
+                } else {
+                    alert('Error al procesar la inscripción.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('No se pudo conectar con el servidor.');
+            });
         }
 
-        // Función para forzar la descarga de un archivo JSON
-        function descargarJSON(data, filename) {
-            const strData = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", strData);
-            downloadAnchor.setAttribute("download", filename);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        // Cerrar modal de éxito y reiniciar formulario
         function cerrarModal() {
-            document.getElementById('modalExito').classList.add('hidden');
+            document.getElementById('modalExito').style.display = 'none';
             document.getElementById('formInscripcion').reset();
             generarCamposIntegrantes();
         }
+
+        // Inicializar los campos al cargar
+        generarCamposIntegrantes();
     </script>
 </body>
 </html>
