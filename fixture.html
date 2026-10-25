@@ -238,21 +238,18 @@
             <ul id="listaEquipos"></ul>
         </div>
 
-        <!-- Panel de control dinámico (Guardar y Listados) -->
         <div id="panelControl"></div>
-
         <div id="contenedorFases"></div>
     </div>
 
     <script>
-        const URL_GOOGLE_STORAGE = "https://script.google.com/macros/s/AKfycbxl43vb9Wtb6deiHBM0r4r2T8H9iTNiR6G_fdxYEoM7fNVUhq4umFDrVBDNyCLWc6ApPg/exec";
-        const STORAGE_PREFIX = "voley_torneo_custom_";
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbz2ldfWi1tCp0v3EtfIBrnYv-bCwJcwoNrf0ekvb3MblBIxIu1MASmYUVKtP91pncnsKA/exec";
 
         let fasesTorneo = [];
         let equiposGlobal = [];
-        let torneoActualActivo = false;
+        let torneoIdActual = null; // ID en Google Drive si fue cargado o guardado
+        let nombreTorneoActual = "";
 
-        // Al abrir la página, el fixture arranca limpio (sin mostrar llaves automáticas)
         window.onload = function() {
             document.getElementById('contenedorFases').innerHTML = `
                 <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
@@ -268,7 +265,7 @@
             document.getElementById('panelControl').innerHTML = '';
 
             try {
-                const response = await fetch(URL_GOOGLE_STORAGE);
+                const response = await fetch(URL_GOOGLE_SCRIPT);
                 const data = await response.json();
 
                 if (!data || data.length === 0) {
@@ -300,7 +297,8 @@
                     });
                 }
 
-                torneoActualActivo = true;
+                torneoIdActual = null; // Es nuevo, aún no tiene ID en Drive hasta guardarlo
+                nombreTorneoActual = "";
                 mostrarBotonGuardar();
                 renderizarTorneo();
 
@@ -325,84 +323,126 @@
         function mostrarBotonGuardar() {
             const panel = document.getElementById('panelControl');
             panel.innerHTML = `
-                <button class="btn-action success" onclick="pedirNombreYGuardar()">💾 Guardar este Torneo</button>
+                <button class="btn-action success" onclick="guardarEnDrive()">💾 Guardar Torneo en Drive</button>
             `;
         }
 
-        function pedirNombreYGuardar() {
-            const nombreTorneo = prompt("Poné un nombre para identificar este torneo (ej: Fecha 1 - Zona Norte):");
-            if (!nombreTorneo || nombreTorneo.trim() === "") return;
+        async function guardarEnDrive(esActualizacion = false) {
+            if (!esActualizacion) {
+                const nombre = prompt("Poné un nombre para identificar este torneo en Google Drive:");
+                if (!nombre || nombre.trim() === "") return;
+                nombreTorneoActual = nombre.trim();
+            }
 
             const fechaCreacion = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-            const datosTorneo = {
-                nombre: nombreTorneo.trim(),
-                fecha: fechaCreacion,
-                equipos: equiposGlobal,
-                fases: fasesTorneo
+            const payload = {
+                tipo: "guardar_torneo",
+                nombre: nombreTorneoActual,
+                torneo: {
+                    nombre: nombreTorneoActual,
+                    fecha: fechaCreacion,
+                    equipos: equiposGlobal,
+                    fases: fasesTorneo
+                }
             };
 
-            const key = STORAGE_PREFIX + Date.now();
-            localStorage.setItem(key, JSON.stringify(datosTorneo));
-            alert(`¡Torneo "${nombreTorneo}" guardado con éxito!`);
+            if (!esActualizacion) {
+                document.getElementById('contenedorFases').innerHTML += '<p style="text-align: center; color: var(--primary); margin-top: 10px;">Guardando en Google Drive...</p>';
+            }
+
+            try {
+                await fetch(URL_GOOGLE_SCRIPT, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!esActualizacion) {
+                    alert(`¡Torneo "${nombreTorneoActual}" guardado en Google Drive con éxito!`);
+                    mostrarBotonGuardar();
+                }
+            } catch (error) {
+                console.error(error);
+                if (!esActualizacion) alert('Error al guardar en Google Drive.');
+            }
         }
 
-        function mostrarTorneosGuardados() {
+        async function mostrarTorneosGuardados() {
             const panel = document.getElementById('panelControl');
             const contenedor = document.getElementById('contenedorFases');
             
-            // Buscamos todas las claves guardadas en localStorage
-            let keys = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                let k = localStorage.key(i);
-                if (k.startsWith(STORAGE_PREFIX)) {
-                    keys.push(k);
+            contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Buscando torneos en Google Drive...</p>';
+            panel.innerHTML = '';
+
+            try {
+                const response = await fetch(`${URL_GOOGLE_SCRIPT}?accion=listar_torneos`);
+                const listaTorneos = await response.json();
+
+                if (!listaTorneos || listaTorneos.length === 0) {
+                    contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No hay torneos guardados en Drive todavía.</p>';
+                    return;
                 }
-            }
 
-            if (keys.length === 0) {
-                alert("No hay torneos guardados todavía.");
-                return;
-            }
+                document.getElementById('seccionEquipos').style.display = 'none';
+                contenedor.innerHTML = '';
 
-            document.getElementById('seccionEquipos').style.display = 'none';
-            contenedor.innerHTML = '';
-
-            let html = `
-                <div class="saved-list-container">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="font-size: 1.1rem; color: var(--primary);">📂 Torneos Guardados</h3>
-                        <button class="btn-action secondary" style="padding: 6px 12px; font-size: 0.8rem; flex: none;" onclick="volverAlInicio()">🔙 Volver</button>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
-            `;
-
-            keys.forEach(k => {
-                const itemData = JSON.parse(localStorage.getItem(k));
-                html += `
-                    <div class="saved-item">
-                        <div>
-                            <strong>${itemData.nombre}</strong>
-                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Creado el: ${itemData.fecha}</div>
+                let html = `
+                    <div class="saved-list-container">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="font-size: 1.1rem; color: var(--primary);">📂 Torneos en Google Drive</h3>
+                            <button class="btn-action secondary" style="padding: 6px 12px; font-size: 0.8rem; flex: none;" onclick="volverAlInicio()">🔙 Volver</button>
                         </div>
-                        <button class="btn-action" style="padding: 8px 14px; font-size: 0.85rem; flex: none;" onclick="cargarTorneoGuardado('${k}')">Cargar</button>
-                    </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
                 `;
-            });
 
-            html += `</div></div>`;
-            panel.innerHTML = html;
+                listaTorneos.forEach(t => {
+                    let nombreLimpio = t.nombreArchivo.replace("torneo_", "").replace(".json", "").replace(/_/g, " ");
+                    html += `
+                        <div class="saved-item">
+                            <div>
+                                <strong style="text-transform: capitalize;">${nombreLimpio}</strong>
+                            </div>
+                            <button class="btn-action" style="padding: 8px 14px; font-size: 0.85rem; flex: none;" onclick="cargarTorneoDeDrive('${t.id}')">Cargar</button>
+                        </div>
+                    `;
+                });
+
+                html += `</div></div>`;
+                panel.innerHTML = html;
+
+            } catch (error) {
+                console.error(error);
+                contenedor.innerHTML = '<p style="text-align: center; color: #ff5252;">Error al listar torneos desde Drive.</p>';
+            }
         }
 
-        function cargarTorneoGuardado(key) {
-            const data = JSON.parse(localStorage.getItem(key));
-            if (data) {
-                fasesTorneo = data.fases;
-                equiposGlobal = data.equipos;
-                mostrarEquiposUI(equiposGlobal);
-                document.getElementById('panelControl').innerHTML = '';
-                torneoActualActivo = true;
-                renderizarTorneo();
+        async function cargarTorneoDeDrive(fileId) {
+            const contenedor = document.getElementById('contenedorFases');
+            contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Cargando torneo desde Drive...</p>';
+
+            try {
+                const response = await fetch(`${URL_GOOGLE_SCRIPT}?accion=cargar_torneo&id=${fileId}`);
+                const data = await response.json();
+
+                if (data) {
+                    fasesTorneo = data.fases;
+                    equiposGlobal = data.equipos;
+                    nombreTorneoActual = data.nombre;
+                    torneoIdActual = fileId;
+
+                    mostrarEquiposUI(equiposGlobal);
+                    document.getElementById('panelControl').innerHTML = `
+                        <div style="background-color: var(--card-bg); padding: 10px 14px; border-radius: 10px; text-align: center; font-size: 0.9rem; color: var(--accent-green);">
+                            ✅ Torneo activo: <strong>${nombreTorneoActual}</strong> (Sincronizado con Drive)
+                        </div>
+                    `;
+                    renderizarTorneo();
+                }
+            } catch (error) {
+                console.error(error);
+                contenedor.innerHTML = '<p style="text-align: center; color: #ff5252;">Error al cargar el torneo.</p>';
             }
         }
 
@@ -423,7 +463,11 @@
 
             verificarAvanzarRonda(rondaIndex);
             
-            // Si hay un torneo activo, actualizamos automáticamente su estado guardado si ya tenía nombre (opcional)
+            // Si ya tiene un nombre guardado, actualizamos automáticamente en Google Drive en segundo plano
+            if (nombreTorneoActual) {
+                guardarEnDrive(true);
+            }
+
             renderizarTorneo();
         }
 
