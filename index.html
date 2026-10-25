@@ -255,19 +255,20 @@
             margin-bottom: 10px;
         }
 
-        .modal-text {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            margin-bottom: 20px;
-            line-height: 1.4;
-        }
-
         .whatsapp-notice {
             background-color: rgba(37, 211, 102, 0.1);
             border: 1px solid var(--accent-green);
             border-radius: 12px;
             padding: 12px;
             margin-bottom: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.2s;
+        }
+
+        .whatsapp-notice:hover {
+            background-color: rgba(37, 211, 102, 0.2);
         }
 
         .whatsapp-notice p {
@@ -379,14 +380,14 @@
             <div class="modal-icon">🎉</div>
             <h3 class="modal-title">¡Inscripción enviada!</h3>
 
-            <div class="whatsapp-notice">
-                <p>⚠️ PASO FINAL OBLIGATORIO:</p>
-                <p style="font-weight: 400; margin-top: 4px;">Debés enviar el comprobante de pago al contacto para que
-                    se confirme la inscripción de tu equipo.</p>
-            </div>
+            <!-- Cartel de aviso clickeable que lleva directo al chat -->
+            <a id="whatsappNoticeLink" href="#" target="_blank" class="whatsapp-notice">
+                <p>⚠️ PASO FINAL OBLIGATORIO (Toca aquí):</p>
+                <p style="font-weight: 400; margin-top: 4px;">Debés enviar el comprobante de pago al contacto para que se confirme la inscripción de tu equipo.</p>
+            </a>
 
             <a id="btnWspComprobante" href="#" target="_blank" class="btn-whatsapp">
-                Enviar comprobante por WhatsApp
+                📲 Enviar comprobante por WhatsApp
             </a>
 
             <button class="btn-close" onclick="cerrarModal()">Entendido / Cerrar</button>
@@ -394,7 +395,8 @@
     </div>
 
     <script>
-        const NUMERO_WHATSAPP = "5491112345678"; // Reemplazá por tu número con código de país
+        const NUMERO_WHATSAPP = "5493431234567"; // <-- Acordate de poner tu número real con código de país y área (sin símbolos)
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzaJ3rwS7qgcP1zcsG9l_KoXJ8B4r03w3Q5Y-stNHsYsDxuEg13ivTPgKVxfXj_y5CcBg/exec";
 
         function generarCamposIntegrantes() {
             const cantidad = parseInt(document.getElementById('cantidadIntegrantes').value);
@@ -438,26 +440,26 @@
                 fechaInscripcion: new Date().toLocaleString()
             };
 
-            // Cambiar por tu URL de Google Apps Script (Paso 2)
-            const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzaJ3rwS7qgcP1zcsG9l_KoXJ8B4r03w3Q5Y-stNHsYsDxuEg13ivTPgKVxfXj_y5CcBg/exec";
-
-            // Mostramos un mensajito de carga opcional
             const btnSubmit = document.querySelector('.btn-submit');
             btnSubmit.innerText = "Inscribiendo...";
             btnSubmit.disabled = true;
 
             fetch(URL_GOOGLE_SCRIPT, {
                 method: 'POST',
-                mode: 'no-cors', // Necesario para Google Apps Script
+                mode: 'no-cors',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(datosEquipo)
             })
                 .then(() => {
-                    // Como usamos no-cors, asumimos éxito y abrimos el modal
                     const mensajeWsp = encodeURIComponent(`¡Hola! Te envío el comprobante de pago para confirmar la inscripción del equipo: *${nombreEquipo}*.`);
-                    document.getElementById('btnWspComprobante').href = `https://wa.me/${NUMERO_WHATSAPP}?text=${mensajeWsp}`;
+                    const linkWsp = `https://wa.me/${5492984960099}?text=${mensajeWsp}`;
+                    
+                    // Asignamos el enlace dinámico tanto al botón como al cuadro de aviso
+                    document.getElementById('btnWspComprobante').href = linkWsp;
+                    document.getElementById('whatsappNoticeLink').href = linkWsp;
+
                     document.getElementById('modalExito').style.display = 'flex';
 
                     btnSubmit.innerText = "Terminar inscripción";
