@@ -224,13 +224,13 @@
 
     <div class="container">
         <header>
-            <h1>🏆 Fixture del Torneo</h1>
+            <h1>Fixture del Torneo</h1>
             <p style="font-size: 0.85rem; margin-top: 4px;">Eliminación Directa en Vivo</p>
         </header>
 
         <div class="actions-group">
-            <button class="btn-action" onclick="sortearNuevoTorneo()">🎲 Sortear Nuevo Torneo</button>
-            <button class="btn-action secondary" onclick="mostrarTorneosGuardados()">📂 Torneos Guardados</button>
+            <button class="btn-action" onclick="sortearNuevoTorneo()">Sortear Nuevo Torneo</button>
+            <button class="btn-action secondary" onclick="mostrarTorneosGuardados()">Torneos Guardados</button>
         </div>
 
         <div class="equipos-cargados" id="seccionEquipos" style="display: none;">
@@ -252,7 +252,7 @@
         window.onload = function() {
             document.getElementById('contenedorFases').innerHTML = `
                 <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
-                    <p style="font-size: 1.1rem; margin-bottom: 8px;">👋 ¡Bienvenido al panel del torneo!</p>
+                    <p style="font-size: 1.1rem; margin-bottom: 8px;">¡Bienvenido al panel del torneo!</p>
                     <p style="font-size: 0.9rem;">Hacé clic en <strong>"Sortear Nuevo Torneo"</strong> para comenzar o cargá uno guardado.</p>
                 </div>
             `;
@@ -357,7 +357,7 @@
                     alert(`¡Torneo "${nombreTorneoActual}" guardado con éxito!`);
                     document.getElementById('panelControl').innerHTML = `
                         <div style="background-color: var(--card-bg); padding: 10px 14px; border-radius: 10px; text-align: center; font-size: 0.9rem; color: var(--accent-green);">
-                            ✅ Torneo activo: <strong>${nombreTorneoActual}</strong> (Sincronizado)
+                            Torneo activo: <strong>${nombreTorneoActual}</strong>
                         </div>
                     `;
                 }
@@ -389,8 +389,8 @@
                 let html = `
                     <div class="saved-list-container">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="font-size: 1.1rem; color: var(--primary);">📂 Torneos Guardados</h3>
-                            <button class="btn-action secondary" style="padding: 6px 12px; font-size: 0.8rem; flex: none;" onclick="volverAlInicio()">🔙 Volver</button>
+                            <h3 style="font-size: 1.1rem; color: var(--primary);">Torneos Guardados</h3>
+                            <button class="btn-action secondary" style="padding: 6px 12px; font-size: 0.8rem; flex: none;" onclick="volverAlInicio()">⬅ Volver</button>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
                 `;
@@ -399,7 +399,7 @@
                     html += `
                         <div class="saved-item">
                             <div>
-                                <strong style="text-transform: capitalize;">${nombre}</strong>
+                                <strong style="text-transform: capitalize;">​🏆​ ${nombre}</strong>
                             </div>
                             <button class="btn-action" style="padding: 8px 14px; font-size: 0.85rem; flex: none;" onclick="cargarTorneoDeDrive('${nombre}')">Cargar</button>
                         </div>
@@ -431,7 +431,7 @@
                     mostrarEquiposUI(equiposGlobal);
                     document.getElementById('panelControl').innerHTML = `
                         <div style="background-color: var(--card-bg); padding: 10px 14px; border-radius: 10px; text-align: center; font-size: 0.9rem; color: var(--accent-green);">
-                            ✅ Torneo activo: <strong>${nombreTorneoActual}</strong> (Sincronizado)
+                            Torneo activo: <strong>${nombreTorneoActual}</strong>
                         </div>
                     `;
                     renderizarTorneo();
@@ -447,7 +447,7 @@
             document.getElementById('seccionEquipos').style.display = 'none';
             document.getElementById('contenedorFases').innerHTML = `
                 <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
-                    <p style="font-size: 1.1rem; margin-bottom: 8px;">👋 ¡Bienvenido al panel del torneo!</p>
+                    <p style="font-size: 1.1rem; margin-bottom: 8px;">¡Bienvenido al panel del torneo!</p>
                     <p style="font-size: 0.9rem;">Hacé clic en <strong>"Sortear Nuevo Torneo"</strong> para comenzar o cargá uno guardado.</p>
                 </div>
             `;
@@ -519,16 +519,16 @@
                     card.innerHTML = `
                         <div class="match-header">
                             <span>Partido ${pIndex + 1}</span>
-                            <span>${partido.ganador ? '✅ Definido' : '⏳ En juego'}</span>
+                            <span>${partido.ganador ? '✅ Definido' : '🏐 En juego'}</span>
                         </div>
                         <div class="team-row ${isEq1Winner ? 'winner' : (partido.ganador ? 'loser' : '')}">
-                            <span class="team-name">🏐 ${partido.eq1}</span>
+                            <span class="team-name">🛡️ ${partido.eq1}</span>
                             <button class="btn-win" onclick="seleccionarGanador(${rIndex}, ${pIndex}, '${partido.eq1}')">
                                 ${isEq1Winner ? 'Ganador' : 'Marcar Ganador'}
                             </button>
                         </div>
                         <div class="team-row ${isEq2Winner ? 'winner' : (partido.ganador ? 'loser' : '')}">
-                            <span class="team-name">🏐 ${partido.eq2}</span>
+                            <span class="team-name">🛡️ ${partido.eq2}</span>
                             <button class="btn-win" onclick="seleccionarGanador(${rIndex}, ${pIndex}, '${partido.eq2}')">
                                 ${isEq2Winner ? 'Ganador' : 'Marcar Ganador'}
                             </button>
@@ -546,7 +546,7 @@
                 const banner = document.createElement('div');
                 banner.className = 'campeon-banner';
                 banner.innerHTML = `
-                    <h2 style="font-size: 1.5rem; margin-bottom: 6px;">🎉 ¡CAMPEÓN DEL TORNEO! 🎉</h2>
+                    <h2 style="font-size: 1.5rem; margin-bottom: 6px;">🏆 ¡CAMPEÓN DEL TORNEO! 🏆</h2>
                     <p style="font-size: 1.2rem; font-weight: 800;">${campeon}</p>
                 `;
                 contenedor.appendChild(banner);
