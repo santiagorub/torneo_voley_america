@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -59,7 +60,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             color: #ffffff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         header p {
@@ -73,8 +74,8 @@
             background-color: var(--card-bg);
             border-radius: 16px;
             padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .card-title {
@@ -159,11 +160,12 @@
             color: var(--text-muted);
         }
 
-        input, select {
+        input,
+        select {
             width: 100%;
             padding: 12px 14px;
             background-color: var(--input-bg);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             color: var(--text-light);
             font-size: 0.95rem;
@@ -171,7 +173,8 @@
             transition: border-color 0.2s;
         }
 
-        input:focus, select:focus {
+        input:focus,
+        select:focus {
             border-color: var(--primary);
         }
 
@@ -225,13 +228,20 @@
             max-width: 400px;
             width: 100%;
             border: 2px solid var(--primary);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         @keyframes popIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .modal-icon {
@@ -284,7 +294,7 @@
         .btn-close {
             background-color: transparent;
             color: var(--text-muted);
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             width: 100%;
             padding: 12px;
             border-radius: 12px;
@@ -294,10 +304,11 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="mobile-container">
-        
+
         <header>
             <h1>Torneo de vóley mixto</h1>
             <p>¡Asegurá el lugar de tu equipo!</p>
@@ -341,7 +352,7 @@
 
         <form class="card" id="formInscripcion" onsubmit="registrarEquipo(event)">
             <h2 class="card-title">📝 Registro del equipo</h2>
-            
+
             <div class="form-group">
                 <label for="nombreEquipo">Nombre del equipo</label>
                 <input type="text" id="nombreEquipo" placeholder="Ej: Los Imparables" required>
@@ -371,10 +382,11 @@
         <div class="modal-content">
             <div class="modal-icon">🎉</div>
             <h3 class="modal-title">¡Inscripción enviada!</h3>
-            
+
             <div class="whatsapp-notice">
                 <p>⚠️ PASO FINAL OBLIGATORIO:</p>
-                <p style="font-weight: 400; margin-top: 4px;">Debés enviar el comprobante de pago al contacto para que se confirme la inscripción de tu equipo.</p>
+                <p style="font-weight: 400; margin-top: 4px;">Debés enviar el comprobante de pago al contacto para que
+                    se confirme la inscripción de tu equipo.</p>
             </div>
 
             <a id="btnWspComprobante" href="#" target="_blank" class="btn-whatsapp">
@@ -415,7 +427,7 @@
             const nombreEquipo = document.getElementById('nombreEquipo').value;
             const cantidadIntegrantes = parseInt(document.getElementById('cantidadIntegrantes').value);
             const inputsIntegrantes = document.querySelectorAll('.input-integrante');
-            
+
             const integrantes = [];
             inputsIntegrantes.forEach(input => {
                 if (input.value.trim() !== "") {
@@ -426,31 +438,41 @@
             const datosEquipo = {
                 nombreEquipo: nombreEquipo,
                 cantidadIntegrantes: cantidadIntegrantes,
-                integrantes: integrantes
+                integrantes: integrantes,
+                fechaInscripcion: new Date().toLocaleString()
             };
 
-            // Envío por fetch al backend en C#
-            fetch('/api/inscribir', {
+            // Cambiar por tu URL de Google Apps Script (Paso 2)
+            const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxCxcI4keipp1uWzG6kJ2FUlVPXLsnaH-cLArv8ZF-9_8k3Ms1K9vtRPUWo7E0yiPeu/exec";
+
+            // Mostramos un mensajito de carga opcional
+            const btnSubmit = document.querySelector('.btn-submit');
+            btnSubmit.innerText = "Inscribiendo...";
+            btnSubmit.disabled = true;
+
+            fetch(URL_GOOGLE_SCRIPT, {
                 method: 'POST',
+                mode: 'no-cors', // Necesario para Google Apps Script
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(datosEquipo)
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
+                .then(() => {
+                    // Como usamos no-cors, asumimos éxito y abrimos el modal
                     const mensajeWsp = encodeURIComponent(`¡Hola! Te envío el comprobante de pago para confirmar la inscripción del equipo: *${nombreEquipo}*.`);
                     document.getElementById('btnWspComprobante').href = `https://wa.me/${NUMERO_WHATSAPP}?text=${mensajeWsp}`;
                     document.getElementById('modalExito').style.display = 'flex';
-                } else {
-                    alert('Error al procesar la inscripción.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('No se pudo conectar con el servidor.');
-            });
+
+                    btnSubmit.innerText = "Terminar inscripción";
+                    btnSubmit.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Hubo un error al registrar el equipo. Intentá de nuevo.');
+                    btnSubmit.innerText = "Terminar inscripción";
+                    btnSubmit.disabled = false;
+                });
         }
 
         function cerrarModal() {
@@ -463,4 +485,5 @@
         generarCamposIntegrantes();
     </script>
 </body>
+
 </html>
