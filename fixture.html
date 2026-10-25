@@ -53,6 +53,11 @@
             font-weight: 800;
         }
 
+        .actions-group {
+            display: flex;
+            gap: 10px;
+        }
+
         .btn-action {
             background-color: var(--primary);
             color: white;
@@ -60,10 +65,15 @@
             padding: 14px;
             border-radius: 12px;
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 0.9rem;
             cursor: pointer;
-            width: 100%;
+            flex: 1;
             transition: transform 0.1s;
+        }
+
+        .btn-action.secondary {
+            background-color: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .btn-action:active {
@@ -125,7 +135,7 @@
         }
 
         .team-name {
-            font-size: 0.95Font;
+            font-size: 0.95rem;
             font-weight: 600;
         }
 
@@ -195,7 +205,10 @@
             <p style="font-size: 0.85rem; margin-top: 4px;">Eliminación Directa en Vivo</p>
         </header>
 
-        <button class="btn-action" onclick="cargarYGenerarFixture()">🔄 Sortear y Reiniciar Torneo</button>
+        <div class="actions-group">
+            <button class="btn-action" onclick="sortearTorneo()">🔄 Nuevo Sorteo</button>
+            <button class="btn-action secondary" onclick="cargarUltimoTorneo()">📂 Cargar Guardado</button>
+        </div>
 
         <div class="equipos-cargados" id="seccionEquipos" style="display: none;">
             <strong>Equipos participantes (<span id="totalEquipos">0</span>):</strong>
@@ -206,16 +219,36 @@
     </div>
 
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxl43vb9Wtb6deiHBM0r4r2T8H9iTNiR6G_fdxYEoM7fNVUhq4umFDrVBDNyCLWc6ApPg/exec";
+        // Nueva URL actualizada de Google Apps Script
+        const URL_GOOGLE_STORAGE = "https://script.google.com/macros/s/AKfycbxl43vb9Wtb6deiHBM0r4r2T8H9iTNiR6G_fdxYEoM7fNVUhq4umFDrVBDNyCLWc6ApPg/exec";
+        const STORAGE_KEY = "voley_torneo_estado_2026";
 
         let fasesTorneo = [];
+        let equiposGlobal = [];
 
-        async function cargarYGenerarFixture() {
+        window.onload = function() {
+            const guardado = localStorage.getItem(STORAGE_KEY);
+            if (guardado) {
+                const datos = JSON.parse(guardado);
+                fasesTorneo = datos.fases;
+                equiposGlobal = datos.equipos;
+                mostrarEquiposUI(equiposGlobal);
+                renderizarTorneo();
+            } else {
+                cargarEquiposDesdeDrive(false);
+            }
+        };
+
+        async function cargarEquiposDesdeDrive(esNuevoSorteo) {
             const contenedor = document.getElementById('contenedorFases');
-            contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Cargando equipos desde Drive...</p>';
+            if (esNuevoSorteo) {
+                contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Sorteando nuevos cruces...</p>';
+            } else {
+                contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Cargando equipos desde Drive...</p>';
+            }
 
             try {
-                const response = await fetch(URL_GOOGLE_SCRIPT);
+                const response = await fetch(URL_GOOGLE_STORAGE);
                 const data = await response.json();
 
                 if (!data || data.length === 0) {
@@ -223,41 +256,12 @@
                     return;
                 }
 
-                let nombresEquipos = data.map(item => item.nombreEquipo);
+                equiposGlobal = data.map(item => item.nombreEquipo);
+                mostrarEquiposUI(equiposGlobal);
 
-                document.getElementById('totalEquipos').innerText = nombresEquipos.length;
-                const ul = document.getElementById('listaEquipos');
-                ul.innerHTML = '';
-                nombresEquipos.forEach(eq => {
-                    const li = document.createElement('li');
-                    li.innerText = eq;
-                    ul.appendChild(li);
-                });
-                document.getElementById('seccionEquipos').style.display = 'block';
-
-                // Sorteo aleatorio
-                nombresEquipos.sort(() => Math.random() - 0.5);
-
-                // Inicializar primera fase
-                fasesTorneo = [{
-                    nombreRonda: nombresEquipos.length > 4 ? "Cuartos de Final" : (nombresEquipos.length > 2 ? "Semifinales" : "Final"),
-                    partidos: []
-                }];
-
-                if (nombresEquipos.length % 2 !== 0) {
-                    nombresEquipos.push("PASA DIRECTO (Libre)");
+                if (esNuevoSorteo || !localStorage.getItem(STORAGE_KEY)) {
+                    iniciarNuevoSorteo(equiposGlobal);
                 }
-
-                for (let i = 0; i < nombresEquipos.length; i += 2) {
-                    fasesTorneo[0].partidos.push({
-                        id: 'r0_p' + (fasesTorneo[0].partidos.length + 1),
-                        eq1: nombresEquipos[i],
-                        eq2: nombresEquipos[i+1],
-                        ganador: null
-                    });
-                }
-
-                renderizarTorneo();
 
             } catch (error) {
                 console.error(error);
@@ -265,14 +269,82 @@
             }
         }
 
+        function mostrarEquiposUI(equipos) {
+            document.getElementById('totalEquipos').innerText = equipos.length;
+            const ul = document.getElementById('listaEquipos');
+            ul.innerHTML = '';
+            equipos.forEach(eq => {
+                const li = document.createElement('li');
+                li.innerText = eq;
+                ul.appendChild(li);
+            });
+            document.getElementById('seccionEquipos').style.display = 'block';
+        }
+
+        function sortearTorneo() {
+            if (confirm("¿Estás seguro de hacer un nuevo sorteo? Se borrarán los resultados actuales.")) {
+                if (equiposGlobal.length > 0) {
+                    iniciarNuevoSorteo(equiposGlobal);
+                } else {
+                    cargarEquiposDesdeDrive(true);
+                }
+            }
+        }
+
+        function cargarUltimoTorneo() {
+            const guardado = localStorage.getItem(STORAGE_KEY);
+            if (guardado) {
+                const datos = JSON.parse(guardado);
+                fasesTorneo = datos.fases;
+                equiposGlobal = datos.equipos;
+                mostrarEquiposUI(equiposGlobal);
+                renderizarTorneo();
+                alert("¡Torneo restaurado con éxito!");
+            } else {
+                alert("No hay ningún torneo guardado previamente.");
+            }
+        }
+
+        function iniciarNuevoSorteo(equipos) {
+            let lista = [...equipos];
+            lista.sort(() => Math.random() - 0.5);
+
+            fasesTorneo = [{
+                nombreRonda: lista.length > 4 ? "Cuartos de Final" : (lista.length > 2 ? "Semifinales" : "Final"),
+                partidos: []
+            }];
+
+            if (lista.length % 2 !== 0) {
+                lista.push("PASA DIRECTO (Libre)");
+            }
+
+            for (let i = 0; i < lista.length; i += 2) {
+                fasesTorneo[0].partidos.push({
+                    id: 'r0_p' + (fasesTorneo[0].partidos.length + 1),
+                    eq1: lista[i],
+                    eq2: lista[i+1],
+                    ganador: null
+                });
+            }
+
+            guardarEstado();
+            renderizarTorneo();
+        }
+
+        function guardarEstado() {
+            const datos = {
+                equipos: equiposGlobal,
+                fases: fasesTorneo
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
+        }
+
         function seleccionarGanador(rondaIndex, partidoIndex, equipoGanador) {
             const partido = fasesTorneo[rondaIndex].partidos[partidoIndex];
-            
-            // Si ya tenía un ganador, permitimos cambiarlo o lo establecemos
             partido.ganador = equipoGanador;
 
-            // Verificamos si todos los partidos de la ronda actual tienen ganador
             verificarAvanzarRonda(rondaIndex);
+            guardarEstado();
             renderizarTorneo();
         }
 
@@ -281,12 +353,9 @@
             const todosDefinidos = rondaActual.partidos.every(p => p.ganador !== null);
 
             if (todosDefinidos) {
-                // Recolectar ganadores
                 const ganadores = rondaActual.partidos.map(p => p.ganador);
 
-                // Si queda más de un ganador, creamos la siguiente ronda
                 if (ganadores.length > 1) {
-                    // Si ya existe la siguiente ronda, la pisamos/actualizamos
                     const siguienteRondaNombre = ganadores.length > 2 ? "Semifinales" : "Gran Final";
                     
                     const nuevosPartidos = [];
@@ -299,7 +368,6 @@
                         });
                     }
 
-                    // Cortamos fases posteriores si existían y agregamos la nueva
                     fasesTorneo = fasesTorneo.slice(0, rondaIndex + 1);
                     fasesTorneo.push({
                         nombreRonda: siguienteRondaNombre,
@@ -353,7 +421,6 @@
                 contenedor.appendChild(rondaDiv);
             });
 
-            // Si llegamos a la final y hay un ganador definitivo
             const ultimaRonda = fasesTorneo[fasesTorneo.length - 1];
             if (ultimaRonda.nombreRonda === "Gran Final" && ultimaRonda.partidos.length === 1 && ultimaRonda.partidos[0].ganador !== null) {
                 const campeon = ultimaRonda.partidos[0].ganador;
