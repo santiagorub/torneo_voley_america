@@ -1,0 +1,6 @@
+C:\mis apps\TorneoVoleyApi\obj\Debug\net10.0\rpswa.dswa.cache.json
+C:\mis apps\TorneoVoleyApi\obj\Debug\net10.0\TorneoVoleyApi.GeneratedMSBuildEditorConfig.editorconfig
+C:\mis apps\TorneoVoleyApi\obj\Debug\net10.0\TorneoVoleyApi.AssemblyInfoInputs.cache
+C:\mis apps\TorneoVoleyApi\obj\Debug\net10.0\TorneoVoleyApi.AssemblyInfo.cs
+C:\mis apps\TorneoVoleyApi\obj\Debug\net10.0\TorneoVoleyApi.csproj.CoreCompileInputs.cache
+C:\mis apps\TorneoVoleyApi\obj\Debug\net10.0\TorneoVoleyApi.MvcApplicationPartsAssemblyInfo.cache
