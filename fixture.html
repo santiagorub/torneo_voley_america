@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixture - Torneo de Vóley Mixto</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff5722;
+            --bg-dark: #121214;
+            --card-bg: #1e1e24;
+            --text-light: #f4f4f7;
+            --text-muted: #a0a0b0;
+            --accent-green: #25d366;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px 10px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff5722, #ff8a65);
+            border-radius: 16px;
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .btn-action {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.1s;
+        }
+
+        .btn-action:active {
+            transform: scale(0.98);
+        }
+
+        .bracket-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .match-card {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .match-title {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255,255,255,0.03);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .team-name {
+            font-size: 0.95rem;
+        }
+
+        .vs-badge {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .bye-text {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .equipos-cargados {
+            background-color: var(--card-bg);
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 0.9rem;
+        }
+
+        .equipos-cargados ul {
+            list-style: none;
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .equipos-cargados li {
+            background-color: rgba(255,255,255,0.08);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Fixture del Torneo</h1>
+            <p style="font-size: 0.85rem; margin-top: 4px;">Eliminación Directa</p>
+        </header>
+
+        <button class="btn-action" onclick="cargarYGenerarFixture()">🔄 Sortea y Generar Fixture</button>
+
+        <div class="equipos-cargados" id="seccionEquipos" style="display: none;">
+            <strong>Equipos participantes (<span id="totalEquipos">0</span>):</strong>
+            <ul id="listaEquipos"></ul>
+        </div>
+
+        <div class="bracket-container" id="contenedorFixture"></div>
+    </div>
+
+    <script>
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxl43vb9Wtb6deiHBM0r4r2T8H9iTNiR6G_fdxYEoM7fNVUhq4umFDrVBDNyCLWc6ApPg/exec";
+
+        async function cargarYGenerarFixture() {
+            const contenedor = document.getElementById('contenedorFixture');
+            contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Cargando equipos e inscripciones...</p>';
+
+            try {
+                const response = await fetch(URL_GOOGLE_SCRIPT);
+                const data = await response.json();
+
+                if (!data || data.length === 0) {
+                    contenedor.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No hay equipos inscriptos todavía.</p>';
+                    return;
+                }
+
+                // Extraer nombres de equipos
+                let nombresEquipos = data.map(item => item.nombreEquipo);
+
+                // Mostrar lista de equipos cargados
+                document.getElementById('totalEquipos').innerText = nombresEquipos.length;
+                const ul = document.getElementById('listaEquipos');
+                ul.innerHTML = '';
+                nombresEquipos.forEach(eq => {
+                    const li = document.createElement('li');
+                    li.innerText = eq;
+                    ul.appendChild(li);
+                });
+                document.getElementById('seccionEquipos').style.display = 'block';
+
+                // Mezclar de forma aleatoria los equipos (Sorteo)
+                nombresEquipos.sort(() => Math.random() - 0.5);
+
+                generarLlave(nombresEquipos);
+
+            } catch (error) {
+                console.error(error);
+                contenedor.innerHTML = '<p style="text-align: center; color: #ff5252;">Error al conectar con la base de datos.</p>';
+            }
+        }
+
+        function generarLlave(equipos) {
+            const contenedor = document.getElementById('contenedorFixture');
+            contenedor.innerHTML = '';
+
+            // Si la cantidad de equipos es impar, agregamos un "Libre / Pasa directo"
+            if (equipos.length % 2 !== 0) {
+                equipos.push("PASA DIRECTO (Libre)");
+            }
+
+            let partidoNum = 1;
+            for (let i = 0; i < equipos.length; i += 2) {
+                const eq1 = equipos[i];
+                const eq2 = equipos[i + 1];
+
+                const card = document.createElement('div');
+                card.className = 'match-card';
+
+                card.innerHTML = `
+                    <div class="match-title">Partido ${partidoNum} - Cruce Inicial</div>
+                    <div class="team-row">
+                        <span class="team-name">${eq1}</span>
+                    </div>
+                    <div class="vs-badge">VS</div>
+                    <div class="team-row">
+                        <span class="team-name ${eq2.includes('DIRECTO') ? 'bye-text' : ''}">${eq2}</span>
+                    </div>
+                `;
+
+                contenedor.appendChild(card);
+                partidoNum++;
+            }
+        }
+    </script>
+</body>
+</html>
